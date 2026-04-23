@@ -24,7 +24,7 @@ const QuoteBlock: Block = {
   ],
 }
 
-export const Portfolios: CollectionConfig = {
+export const CollectionPortfolios: CollectionConfig = {
   slug: 'portfolios',
   admin: {
     useAsTitle: 'title',

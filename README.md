@@ -1,3 +1,10 @@
+# Документация (пока что наброски):
+
+- Создание миграции `pnpx payload migrate:create`
+- Применение миграции `pnpx payload migrate`
+- Удаляет все сущности и прогоняет миграции с нуля `pnpx payload migrate:fresh`
+- Откатывает все ранее запущенные миграции `pnpx payload migrate:reset`
+
 # Payload Blank Template
 
 This template comes configured with the bare minimum to get started on anything you need.

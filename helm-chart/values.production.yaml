@@ -1,0 +1,17 @@
+project: renpensions
+service: cms2
+fullnameOverride: cms2
+nameOverride: cms2
+image: registry.npfpens.ru/ps/front/cms2
+version: latest
+ingress_domain: k8s.prod.local
+environment:
+  REMOTE_PG_USER: dbcreator
+  REMOTE_PG_PASSWORD: $(secret_asvc)
+  # NOTE: Уточнить адрес прод хоста, временно дев хост
+  # REMOTE_PG_HOST: rp-sqlcl01.rp.local
+  REMOTE_PG_HOST: 10.91.29.57
+  REMOTE_PG_PORT: 5432
+  REMOTE_PG_DEFAULT_DATABASE_NAME: dbcreator
+  REMOTE_PG_DATABASE_NAME: renpensions_cms2
+  SHARED_FOLDER: /mnt

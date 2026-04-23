@@ -1,0 +1,11 @@
+name: cms2
+version: 1.0.0
+appVersion: 1.0.177
+description: Partner Portal
+keywords:
+  - cms2
+  - service
+home: https://gitlab.npfpens.ru/ps/front/cms2
+maintainers:
+  - name: Bibik Sergey
+    email: Sergey.Bibik@npfpens.ru

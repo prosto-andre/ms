@@ -6,12 +6,13 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
-import { LkPages } from './collections/LkPages'
-import { Media } from './collections/Media'
-import { PortalsPages } from './collections/PortalsPages/PortalsPages'
-import { Portfolios } from './collections/Portfolios'
-import { Users } from './collections/Users'
-import { WebsitePages } from './collections/WebsitePages'
+import { CollectionMedia } from './collections/10_CollectionMedia/CollectionMedia'
+import { CollectionUsers } from './collections/1_CollectionUsers/CollectionUsers'
+import { CollectionWebsitePages } from './collections/2_CollectionWebsitePages/CollectionWebsitePages'
+import { CollectionLkPages } from './collections/3_CollectionLkPages/CollectionLkPages'
+import { CollectionPortfolios } from './collections/5_CollectionPortfolios/CollectionPortfolios'
+import { CollectionPortalsPages } from './collections/9_CollectionPortalsPages/CollectionPortalsPages'
+import { ENV_PAYLOAD_SECRET, PREPARED_DATABASE_URL } from './constants/constants'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -19,48 +20,33 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   // NOTE: исходя из документации должно работать, но не работает на практике
   // serverURL: `http://localhost:${process.env.PORT}`,
-  cors: [
-    'https://localhost.npfpens.ru:3001',
-    // 'https://your-production-site.com',
-  ],
+  cors: ['https://npfpens.ru', 'https://localhost.npfpens.ru:3001'],
   folders: {
-    debug: true, // optional
+    debug: true,
     collectionOverrides: [
       async ({ collection }) => {
         return collection
       },
-    ], // optional
-    fieldName: 'folder', // optional
-    slug: 'payload-folders', // optional
+    ],
+    fieldName: 'folder',
+    slug: 'payload-folders',
   },
   admin: {
-    user: Users.slug,
+    user: CollectionUsers.slug,
     importMap: {
       baseDir: path.resolve(dirname),
     },
   },
   collections: [
-    Users,
-    WebsitePages,
-    LkPages,
-    PortalsPages,
-    Portfolios,
-    Media,
-    // {
-    //   slug: 'cars',
-    //   admin: {
-    //     useAsTitle: 'title',
-    //   },
-    //   fields: [
-    //     {
-    //       name: 'title',
-    //       type: 'text',
-    //     }
-    //   ]
-    // }
+    CollectionUsers,
+    CollectionWebsitePages,
+    CollectionLkPages,
+    CollectionPortalsPages,
+    CollectionPortfolios,
+    CollectionMedia,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: ENV_PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -72,7 +58,7 @@ export default buildConfig({
   // }),
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI,
+      connectionString: PREPARED_DATABASE_URL,
     },
   }),
   sharp,

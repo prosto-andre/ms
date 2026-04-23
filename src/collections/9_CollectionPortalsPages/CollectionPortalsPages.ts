@@ -3,7 +3,7 @@ import { fieldPortalType } from './fieldPortalType'
 import { fieldGroupSlots } from './fieldGroupSlots/fieldGroupSlots'
 import { fieldBlocksSlots } from './fieldBlocksSlots/fieldBlocksSlots'
 
-export const PortalsPages: CollectionConfig = {
+export const CollectionPortalsPages: CollectionConfig = {
   slug: 'portals-pages',
   labels: {
     singular: 'Страница Портала',

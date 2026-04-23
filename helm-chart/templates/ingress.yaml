@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.fullnameOverride }}{{ if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug}}{{ end }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  labels:
+    {{- if hasPrefix "development" .Release.Namespace }}
+    app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+    app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+    {{- else }}
+    app: {{ .Release.Name }}
+    {{- end }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+    ingress: {{ default .Release.Name .Values.gl_environment_slug }}
+spec:
+  {{- if eq .Release.Namespace "uat" }}
+  ingressClassName: nginx-uat2
+  {{- end }}
+  rules:
+  {{- if eq .Release.Namespace "production" }}
+  - host: {{ .Values.fullnameOverride }}.{{ .Values.ingress_domain }}
+  {{- else if .Values.gl_commit_ref_slug }}
+  - host: {{ .Values.gl_commit_ref_slug }}.{{ .Values.fullnameOverride }}.{{ .Values.ingress_domain }}
+  {{- else}}
+  - host: {{ .ReleaseName }}.{{ .Values.ingress_domain}}
+  {{- end }}
+    http:
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: {{ default .Release.Name .Values.gl_environment_slug }}
+              port:
+                number: {{ default "8080" .Values.port }}

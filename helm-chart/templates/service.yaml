@@ -1,0 +1,30 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ default .Release.Name .Values.gl_environment_slug }}
+  labels:
+    {{- if hasPrefix "development" .Release.Namespace }}
+    app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+    app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+    {{- else }}
+    app: {{ .Release.Name }}
+    {{- end }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    {{- if hasPrefix "development" .Release.Namespace }}
+    app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+    app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+    {{- else }}
+    app: {{ .Release.Name }}
+    {{- end }}
+    environment: {{ .Release.Namespace }}
+    project: {{ .Values.project }}
+    service: {{ .Values.service }}
+    instance: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ default "8080" .Values.port }}

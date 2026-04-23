@@ -8,5 +8,9 @@ export const fieldArrayCards: Field = {
   type: 'array',
   interfaceName: 'Cards',
   label: 'Список карточек',
-  fields: [fieldSelectCardIcon, fieldTextCardTitle, fieldTextareaCardText],
+  fields: [
+    // fieldSelectCardIcon,
+    fieldTextCardTitle,
+    fieldTextareaCardText,
+  ],
 }

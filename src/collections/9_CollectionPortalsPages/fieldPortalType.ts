@@ -10,7 +10,7 @@ export const fieldPortalType: Field = {
   options: [
     {
       label: 'Портал оператора',
-      value: 'operatorPortal',
+      value: 'cms2',
     },
     {
       label: 'Портал партнера',

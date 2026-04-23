@@ -1,0 +1,24 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  {{- if eq .Release.Namespace "production" }}
+  name: ingress-{{ .Release.Name }}
+  {{- else }}
+  name: ingress-{{ .Values.fullnameOverride | default .Release.Name }}-{{ .Values.gl_commit_ref_slug | default "default" }}
+  {{- end }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- if eq .Release.Namespace "production" }}
+      app: {{ .Release.Name }}
+      {{- else }}
+      app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+      {{- end }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress-nginx

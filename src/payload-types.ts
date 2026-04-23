@@ -12,7 +12,6 @@
  */
 export type Cards =
   | {
-      cardIcon?: string | null;
       fieldTextCardTitle?: string | null;
       CardText?: {
         root: {
@@ -239,7 +238,7 @@ export interface LkPage {
  */
 export interface PortalsPage {
   id: number;
-  portalType?: ('operatorPortal' | 'partnerPortal') | null;
+  portalType?: ('cms2' | 'partnerPortal') | null;
   titleImage?: (number | null) | Media;
   slots?:
     | (
@@ -297,7 +296,7 @@ export interface PortalsPage {
  */
 export interface Media {
   id: number;
-  alt: string;
+  alt?: string | null;
   folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -310,6 +309,16 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -578,7 +587,6 @@ export interface PortalsPagesSelect<T extends boolean = true> {
  * via the `definition` "Cards_select".
  */
 export interface CardsSelect<T extends boolean = true> {
-  cardIcon?: T;
   fieldTextCardTitle?: T;
   CardText?: T;
   id?: T;
@@ -648,6 +656,20 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

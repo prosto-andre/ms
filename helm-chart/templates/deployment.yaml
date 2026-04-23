@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+  labels:
+    {{- if hasPrefix "development" .Release.Namespace }}
+    app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+    app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+    {{- else }}
+    app: {{ .Release.Name }}
+    {{- end }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  {{- if eq .Release.Namespace "production" }}
+  replicas: 2
+  {{- else }}
+  replicas: 1
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- if hasPrefix "development" .Release.Namespace }}
+      app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+      app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+      {{- else }}
+      app: {{ .Release.Name }}
+      {{- end }}
+      environment: {{ .Release.Namespace }}
+      project: {{ .Values.project }}
+      service: {{ .Values.service }}
+      instance: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+  template:
+    metadata:
+      name: {{ .Release.Name }}
+      labels:
+        {{- if hasPrefix "development" .Release.Namespace }}
+        app.gitlab.com/app: {{ default .Release.Name .Values.gl_project_path_slug }}
+        app.gitlab.com/env: {{ default .Release.Namespace .Values.gl_environment_slug }}
+        {{- else }}
+        app: {{ .Release.Name }}
+        {{- end }}
+        environment: {{ .Release.Namespace }}
+        project: {{ .Values.project }}
+        service: {{ .Values.service }}
+        instance: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+        version: {{ .Values.version }}
+
+      {{- if hasPrefix "development" .Release.Namespace }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "cms2-dev"
+        vault.hashicorp.com/agent-inject-secret-env: "kv/data/development/cms2"
+        vault.hashicorp.com/agent-inject-template-env: |
+          {{ "{{- with secret \"kv/data/development/cms2\" -}}" }}
+          export REMOTE_PG_PASSWORD='{{ "{{ .Data.data.REMOTE_PG_PASSWORD }}" }}'
+          export PAYLOAD_SECRET='{{ "{{ .Data.data.PAYLOAD_SECRET }}" }}'
+          {{ "{{- end -}}" }}
+      {{- end }}
+
+    spec:
+      imagePullSecrets:
+      - name: ps-gitlab-registry
+      containers:
+      - name: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+        image: "{{ .Values.image }}:{{ .Values.version }}"
+
+        {{- if hasPrefix "development" .Release.Namespace }}
+        command: ["/bin/sh","-lc"]
+        args:
+          - |
+            if [ -f /vault/secrets/env ]; then
+              . /vault/secrets/env
+            fi
+            exec node ./app/server.js
+        {{- end }}
+
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        env:
+          - name: NODE_ENV
+          {{- if hasPrefix "development" .Release.Namespace }}
+            value: "development"
+          {{- else }}
+            value: "production"
+          {{- end }}
+          - name: secret_asvc
+            valueFrom:
+              secretKeyRef:
+                name: rh-secret-asvc
+                key: password
+          - name: secret_authconfig_key
+            valueFrom:
+              secretKeyRef:
+                name: rh-secret-authconfig
+                key: key
+          {{- range $environmentKey, $environmentValue := .Values.environment }}
+          - name: {{ $environmentKey }}
+            value: {{ tpl ($environmentValue | quote) $ }}
+          {{- end }}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: {{ default "5" .Values.readinessProbeInitialDelay }}
+          periodSeconds: {{ default "5" .Values.readinessProbePeriod }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: {{ default "15" .Values.livenessProbeInitialDelay }}
+          periodSeconds: {{ default "30" .Values.livenessProbePeriod }}
+        volumeMounts:
+          - mountPath: /mnt/cms2
+            name: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          {{- with .Values.resources }}
+          {{ toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+      - name: {{ .Values.fullnameOverride }}{{- if ne .Release.Namespace "production" }}-{{ .Values.gl_commit_ref_slug }}{{- end }}
+        persistentVolumeClaim:
+        {{- if eq .Release.Namespace "production" }}
+          claimName: renpensions-cmssite2
+        {{- else if eq .Release.Namespace "uat" }}
+          claimName: renpensions-cmssite2-uat-new
+        {{- else }}
+          claimName: renpensions-cmssite2-{{ .Values.gl_commit_ref_slug }}-new
+        {{- end }}
+
+      restartPolicy: Always
