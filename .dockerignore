@@ -1,0 +1,15 @@
+.git
+.gitlab
+.gitignore
+.next
+node_modules
+coverage
+playwright-report
+test-results
+.vscode
+.cursor
+.env
+.env.*
+Dockerfile-backap1
+docker-compose.yml
+README.md
